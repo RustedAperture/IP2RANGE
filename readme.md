@@ -37,8 +37,18 @@ This can also be found in the output.csv file
 - netaddr
 - ipaddress
 
-## Usage
+## Usage & "Installation"
 
-`Python3 IP2CIDR.py -i <input_file> -o <output_file>`
+```
+sudo apt install python3
+pip3 install ipwhois tqdm netaddr ipaddress
+
+git clone https://github.com/RustedAperture/IP2RANGE
+cd IP2RANGE
+Python3 IP2CIDR.py -i <input_file> -o <output_file>
+```
 
 By adding the `--detail` option it will add the country and owner to the CSV
+
+## Screenshot
+![Screenshot of app running in WSL2](screenshot.png "App Running")
