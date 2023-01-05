@@ -39,13 +39,14 @@ This can also be found in the output.csv file
 
 ## Usage & "Installation"
 
+Instructions for Ubuntu
 ```
-sudo apt install python3
+sudo apt install python3 python3-pip
 pip3 install ipwhois tqdm netaddr ipaddress
 
 git clone https://github.com/RustedAperture/IP2RANGE
 cd IP2RANGE
-Python3 IP2CIDR.py -i <input_file> -o <output_file>
+Python3 IP2CIDR.py -i <input_file> -o <output_file> --detail
 ```
 
 By adding the `--detail` option it will add the country and owner to the CSV
