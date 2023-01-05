@@ -5,34 +5,40 @@ import sys, getopt, csv, ipaddress, netaddr
 def clean_list(list):
     newlist = []
     for a in list:
-        newlist.append(a.__str__())
+        newlist.append([a.__str__()])
 
     return newlist
 
-def get_owners(cidr_list):
+def get_additional(cidr_list):
     final_list = []
 
-    pbar=tqdm(cidr_list)
+    pbar = tqdm(cidr_list)
 
     for x in pbar:
-        pbar.set_description("Finding Owners")
-        obj = IPWhois(x.split("/")[0])
+        pbar.set_description("Getting Additional Info")
+        obj = IPWhois(x[0].split("/")[0])
         res = obj.lookup_whois()
+
         cidr_owner = check_owner(res)
         if cidr_owner == None:
             cidr_owner = check_name(res)
-        final_list.append([x, cidr_owner])
+        x.append(cidr_owner)
+    
+        cidr_country = check_country(res)
+        x.append(cidr_country)
+
+        final_list.append(x)
 
     return final_list
 
-def ip_list(file):
+def ip_list(file, opts):
     results = []
     cidr_list = []
     current_cidr = "0.0.0.0/24"
 
     with open(file, mode='r', encoding='utf-8-sig') as csvfile:
         reader = csv.reader(csvfile)
-        for row in reader: # each row is a list
+        for row in reader:
             results.append(row)
 
     pbar = tqdm(results)
@@ -40,8 +46,7 @@ def ip_list(file):
     for a in pbar:
         pbar.set_description("Finding CIDRs")
         for b in a:
-            if ipaddress.ip_address(b) in ipaddress.ip_network(current_cidr):
-                continue
+            if ipaddress.ip_address(b) in ipaddress.ip_network(current_cidr): continue
             else:
                 obj = IPWhois(str(b))
                 res = obj.lookup_whois()
@@ -57,10 +62,14 @@ def ip_list(file):
 
     print("Merging Neighbor CIDRs.")
     summary = netaddr.cidr_merge(cidr_list)
-    return get_owners(clean_list(summary))
+    return get_additional(clean_list(summary)) if ('--detail', '') in opts else clean_list(summary)
 
-def output_list(file, list):
-    fields = ["CIDR", "Owner"]
+def output_list(file, list, opts):
+    fields = ["CIDR"]
+
+    if ('--detail', '') in opts: 
+        fields.append("Owner")
+        fields.append("Country")
 
     print("Outputting file.")
 
@@ -81,33 +90,18 @@ def check_country(res):
 def check_name(res):
     return res["nets"][0]["name"]
 
-def check(res):
-    print("Owner:\t\t" + res["nets"][0]["description"])
-    print("Country:\t" + res["nets"][0]["country"])
-    print("CIDR:\t\t" + res["nets"][0]["cidr"])
-    print("Range:\t\t" + res["nets"][0]["range"])
-
 def main(argv):
-    opts, args = getopt.getopt(argv,"hi:f:o:",["ip=", "input=", "output=", "cidr", "whois", "owner"])
+    opts, args = getopt.getopt(argv,"hi:o:",["input=", "output=", "detail"])
     cidr_list = []
-    ip_address = ""
 
     for opt, arg in opts:
         if opt == '-h':
-            print ('ip2range.py -i <ip address> -f <csv list> -o <output csv> --cidr --whois --owner')
+            print ('ip2range.py -i <csv list> -o <output csv> --detail')
             sys.exit()
-        elif opt in ("-i", "--ip"):
-            ip_address = IPWhois(str(arg))
-        elif opt in ("-f", "--input"):
-            cidr_list = ip_list(arg)
+        elif opt in ("-i", "--input"):
+            cidr_list = ip_list(arg, opts)
         elif opt in ("-o", "--output"):
-            output_list(arg, cidr_list)
-        elif opt in ("--cidr"):
-            print("CIDR:\t" + check_cidr(ip_address.lookup_whois()))
-        elif opt in ("--whois"):
-            check(ip_address.lookup_whois())
-        elif opt in ("--owner"):
-            print(check_owner(ip_address.lookup_whois()))
+            output_list(arg, cidr_list, opts)
         
     
 if __name__ == "__main__":

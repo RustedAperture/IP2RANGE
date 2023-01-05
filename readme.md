@@ -4,11 +4,19 @@ This script will convert a csv list of IP addresses into their respective CIDR s
 
 ## output example
 
-|    CIDR    |                   Owner                   |
-|:----------:|:-----------------------------------------:|
-| 8.0.0.0/9  |            Level 3 Parent, LLC            |
-| 1.1.1.0/24 | APNIC and Cloudflare DNS Resolver project |
-|            |                                           |
+### Regular
+
+|      CIDR       |
+|:---------------:|
+|    8.0.0.0/9    |
+| 208.67.216.0/21 |
+
+### Detailed
+
+|      CIDR       |       Owner        | Country |
+|:---------------:|:------------------:|:-------:|
+|    8.0.0.0/9    | Level 3 Parent LLC |   US    |
+| 208.67.216.0/21 | Cisco OpenDNS LLC  |   US    |
 
 ## Requirements
 
@@ -20,4 +28,6 @@ This script will convert a csv list of IP addresses into their respective CIDR s
 
 ## Usage
 
-`Python3 IP2CIDR.py -f <input_file> -o <output_file>`
+`Python3 IP2CIDR.py -i <input_file> -o <output_file>`
+
+By adding the `--detail` option it will add the Country and owner to the CSV
